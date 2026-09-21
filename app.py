@@ -21,10 +21,7 @@ load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
-try:
-    db.init_db()
-except Exception as exc:  # DATABASE_URL set but unreachable/misconfigured — don't crash the site over it.
-    print(f"[db] init_db failed, traffic logging and lead capture are disabled: {exc}")
+db.init_db()  # no-ops safely if DATABASE_URL is unset or unreachable — see db.py's @_safe decorator
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")

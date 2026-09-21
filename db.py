@@ -1,16 +1,35 @@
 """Traffic logging + chat-captured leads, backed by Postgres (Supabase free tier).
 
-Every function here degrades to a safe no-op when DATABASE_URL isn't set, so the
-site runs fine locally or before the database is configured — same pattern as
-OPENAI_API_KEY in app.py.
+Every public function here degrades to a safe no-op (and logs a warning) on ANY
+failure — DATABASE_URL unset, wrong password, network blip, whatever. Traffic
+logging and lead capture must never be able to take the main site down; a visit
+that fails to log is just a visit that fails to log, not a 500 page.
 """
+import logging
 import os
 from contextlib import contextmanager
+from functools import wraps
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+
+logger = logging.getLogger(__name__)
+
+
+def _safe(default=None):
+    """Decorator: catch and log any exception, returning `default` instead of raising."""
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except Exception as exc:
+                logger.warning("[db] %s failed, continuing without it: %s", fn.__name__, exc)
+                return default
+        return wrapper
+    return decorator
 
 
 @contextmanager
@@ -29,6 +48,7 @@ def get_conn():
         conn.close()
 
 
+@_safe()
 def init_db():
     """Creates the tables if they don't exist yet. Safe to call on every app startup."""
     with get_conn() as conn:
@@ -57,6 +77,7 @@ def init_db():
             """)
 
 
+@_safe()
 def log_visit(path, referrer, user_agent, ip_hash, device_type):
     with get_conn() as conn:
         if conn is None:
@@ -69,9 +90,11 @@ def log_visit(path, referrer, user_agent, ip_hash, device_type):
             )
 
 
+@_safe(default=False)
 def save_lead(email, message, referrer):
     """Inserts a new lead. Returns True if it was newly captured, False if that
-    email was already on file (ON CONFLICT DO NOTHING) or the DB isn't configured."""
+    email was already on file (ON CONFLICT DO NOTHING), the DB isn't configured,
+    or the save failed for any reason."""
     with get_conn() as conn:
         if conn is None:
             return False
@@ -84,6 +107,7 @@ def save_lead(email, message, referrer):
             return cur.rowcount > 0
 
 
+@_safe()
 def get_stats():
     with get_conn() as conn:
         if conn is None:
