@@ -14,14 +14,14 @@ const SUGGESTIONS = [
 const WELCOME: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  content: `Hi! I'm **${profile.name}'s** AI agent. I know his resume, projects, and experience inside out — ask me anything, like what he's built, his stack, or whether he's open to new roles.`,
+  content: `Hi, I'm **Suzie** — I manage ${profile.name}'s professional details. Ask me anything: what he's built, his stack, or whether he's open to new roles.`,
 }
 
 const NOT_CONFIGURED_NOTICE: ChatMessage = {
   id: 'not-configured',
   role: 'assistant',
   content:
-    "This agent isn't connected to a backend yet. Once the site owner deploys the Cloudflare Worker and sets `VITE_CHAT_API_URL`, I'll be able to chat for real. In the meantime, feel free to reach out directly via the contact section below!",
+    "Suzie isn't connected to a backend yet. Once the site owner deploys the Cloudflare Worker and sets `VITE_CHAT_API_URL`, she'll be able to chat for real. In the meantime, feel free to reach out directly via the contact section below!",
 }
 
 export function ChatWidget({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -75,7 +75,7 @@ export function ChatWidget({ open, onClose }: { open: boolean; onClose: () => vo
       )
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError('Something went wrong reaching the AI agent. Please try again in a moment.')
+        setError('Something went wrong reaching Suzie. Please try again in a moment.')
       }
     } finally {
       setStreaming(false)
@@ -108,12 +108,10 @@ export function ChatWidget({ open, onClose }: { open: boolean; onClose: () => vo
               <Bot className="size-5" />
             </span>
             <div>
-              <p className="font-display text-sm font-semibold text-heading">
-                {profile.name}'s AI Agent
-              </p>
+              <p className="font-display text-sm font-semibold text-heading">Suzie</p>
               <p className="flex items-center gap-1.5 text-xs text-body">
                 <span className="size-1.5 rounded-full bg-emerald-400" />
-                {configured ? 'Online' : 'Not connected'}
+                {configured ? 'Online' : 'Not connected'} · {profile.name}'s Assistant
               </p>
             </div>
           </div>
@@ -170,7 +168,7 @@ export function ChatWidget({ open, onClose }: { open: boolean; onClose: () => vo
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={!configured || streaming}
-            placeholder={configured ? 'Ask about my experience…' : 'Agent not connected yet'}
+            placeholder={configured ? 'Ask Suzie anything…' : 'Suzie not connected yet'}
             className="flex-1 rounded-full border border-line bg-surface-2 px-4 py-2.5 text-sm text-heading placeholder:text-body/60 outline-none focus:border-brand/50 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
