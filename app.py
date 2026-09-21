@@ -2,6 +2,7 @@ import hashlib
 import os
 import re
 import secrets
+import threading
 import time
 from collections import defaultdict, deque
 from datetime import datetime, timezone
@@ -13,6 +14,7 @@ from flask import Flask, Response, jsonify, render_template, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import db
+import notify
 from data.profile import achievements, education, experience, profile, research, skills
 from knowledge import SYSTEM_PROMPT
 
@@ -150,7 +152,16 @@ def chat():
     if last_user_message:
         email_match = EMAIL_RE.search(last_user_message)
         if email_match:
-            db.save_lead(email=email_match.group(0), message=last_user_message, referrer=request.referrer)
+            captured_email = email_match.group(0)
+            is_new_lead = db.save_lead(email=captured_email, message=last_user_message, referrer=request.referrer)
+            if is_new_lead:
+                # Email in a background thread so a slow/failed SMTP send never delays
+                # or breaks the chat response — notify.py already fails silently on its own.
+                threading.Thread(
+                    target=notify.send_lead_email,
+                    args=(captured_email, last_user_message, request.referrer),
+                    daemon=True,
+                ).start()
 
     try:
         upstream = requests.post(

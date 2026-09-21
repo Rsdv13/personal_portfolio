@@ -18,3 +18,9 @@ services:
         sync: false
       - key: IP_HASH_SALT
         generateValue: true
+      - key: GMAIL_ADDRESS
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: LEAD_NOTIFY_EMAIL
+        value: sudharsan.nitt@gmail.com

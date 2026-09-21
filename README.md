@@ -13,6 +13,7 @@ CORS, one deployment target (Render).
 ```
 app.py                  Flask app: routes + the /api/chat streaming endpoint
 db.py                   Traffic logging + chat lead capture (Postgres, e.g. Supabase free tier)
+notify.py               Emails you when a new lead is captured (Gmail SMTP, stdlib only)
 data/profile.py         Everything rendered on the page (experience, skills, education, contact)
 knowledge.py            What the AI agent (Suzie) knows + her system prompt/persona
 templates/               Jinja2 templates (base.html, index.html, partials/*.html, admin.html)
@@ -95,22 +96,48 @@ features are fully optional and no-op gracefully if unconfigured.
   returns 401 for everyone, including you.
 
 **One-time setup (free, via Supabase):**
-1. Create a project at [supabase.com](https://supabase.com) (free tier, no credit card).
-2. Project Settings → Database → Connection string → **URI**, using the **Transaction pooler**
-   (port 6543) — copy it, it looks like
-   `postgresql://postgres.xxxx:password@aws-x-region.pooler.supabase.com:6543/postgres`.
-3. Add it to Render as the `DATABASE_URL` environment variable, plus set `ADMIN_PASSWORD` to
-   something real. `IP_HASH_SALT` auto-generates on first deploy via `render.yaml`
-   (`generateValue: true`) — you don't need to set it yourself.
-4. Redeploy (or just push any commit). `db.init_db()` runs on startup and creates the two tables
+1. Create a project at [supabase.com](https://supabase.com) (free tier, no credit card). In the
+   Render dashboard, the fastest way to the Environment page for a given service is
+   `dashboard.render.com/web/<service-id>/env` — the plain "Environment" link in the sidebar can
+   be easy to miss in Render's current UI.
+2. On the project page, click the green **Connect** button (top of the page) → **Connection
+   string** → **URI** tab → **Transaction pooler** mode (port 6543) → copy it. It looks like
+   `postgresql://postgres.xxxx:[YOUR-PASSWORD]@aws-x-region.pooler.supabase.com:6543/postgres`.
+3. **Gotcha:** if your database password contains an `@` (or other URL-special character), it
+   must be percent-encoded in the connection string or the whole thing fails to parse (`@` breaks
+   host-name parsing specifically) — replace `@` with `%40` before using it anywhere.
+4. Add it to Render as the `DATABASE_URL` environment variable, plus set `ADMIN_PASSWORD` to
+   something real (any username works at the login prompt — only the password is checked).
+   `IP_HASH_SALT` auto-generates on first deploy via `render.yaml` (`generateValue: true`) — you
+   don't need to set it yourself.
+5. Redeploy (or just push any commit). `db.init_db()` runs on startup and creates the two tables
    (`page_visits`, `leads`) automatically if they don't exist yet — no separate migration step.
-5. For local dev, add the same `DATABASE_URL` (and `ADMIN_PASSWORD`) to your `.env` file, or just
+6. For local dev, add the same `DATABASE_URL` (and `ADMIN_PASSWORD`) to your `.env` file, or just
    leave them unset — the site runs fine either way, traffic logging and lead capture just quietly
    do nothing.
 
 **Limitation worth knowing:** the per-IP rate limiter in `app.py` is in-memory and doesn't touch
 this database — see Security notes below. Traffic/lead data itself is fully durable in Postgres
 regardless.
+
+### Email notification on new leads (`notify.py`)
+
+Whenever `/api/chat` captures a genuinely new lead (not a repeat of an email already on file),
+it emails a notification in a background thread — via `smtplib`, Python's standard library, no
+new dependency — so you find out immediately instead of having to remember to check
+`/admin/stats`.
+
+**One-time setup (free, using your own Gmail):**
+1. Enable 2-Step Verification on the sending Google account, if it isn't already
+   (myaccount.google.com/security).
+2. Generate an App Password at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   — **not** your regular Gmail password, a separate 16-character one scoped to this use.
+3. Add `GMAIL_ADDRESS` (the sending account) and `GMAIL_APP_PASSWORD` (the 16-character password
+   from step 2) to Render's environment variables. `LEAD_NOTIFY_EMAIL` already defaults to
+   `sudharsan.nitt@gmail.com` in `render.yaml` — only add it yourself if you want notifications
+   to go somewhere else.
+4. Leave `GMAIL_ADDRESS`/`GMAIL_APP_PASSWORD` unset to disable this — leads still save to the
+   database and show up at `/admin/stats`, you just won't get an email about them.
 
 ---
 
