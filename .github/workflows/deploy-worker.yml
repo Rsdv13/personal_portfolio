@@ -11,11 +11,22 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only runs once CLOUDFLARE_API_TOKEN is set as a repo secret (see worker/README.md).
+    # Only runs once the Cloudflare secrets/variable below are set (see README.md).
     if: ${{ vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+
+      - name: Install dependencies
+        working-directory: worker
+        run: npm ci
 
       - name: Deploy worker
         uses: cloudflare/wrangler-action@v3
