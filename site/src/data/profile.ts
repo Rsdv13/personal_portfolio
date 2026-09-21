@@ -23,11 +23,11 @@ export type ExperienceEntry = {
 export const experience: ExperienceEntry[] = [
   {
     title: 'Data Engineer',
-    company: 'Javen Technologies (Client: Solventum)',
+    company: 'Solventum (via Javen Technologies)',
     location: 'Minneapolis, MN',
     period: 'Jul 2024 – Present',
     story:
-      "I joined Javen Technologies in mid-2024 to help modernize Solventum's Snowflake data platform. I rebuilt their core data marts around dimensional modeling and clustering keys, then layered in incremental ELT pipelines — Tasks, Streams, change data capture — so the OTC, Commercial Ops, and MDM datasets stay fresh without expensive full reloads. I leaned on Time Travel and zero-copy cloning to make regression testing safe on production-scale data, and shipped real-time Power BI dashboards the business actually relies on. More recently, I've been pushing the team into AI territory: prototyping a multi-agent orchestration proof of concept on Azure AI Foundry, and building a monitoring framework — golden-question tests plus an LLM-as-judge layer — to keep an internal Microsoft Fabric data agent honest and accurate.",
+      "I joined Solventum in mid-2024, brought on through Javen Technologies, to help modernize their Snowflake data platform. I rebuilt their core data marts around dimensional modeling and clustering keys, then layered in incremental ELT pipelines — Tasks, Streams, change data capture — so the OTC, Commercial Ops, and MDM datasets stay fresh without expensive full reloads. I leaned on Time Travel and zero-copy cloning to make regression testing safe on production-scale data, and shipped real-time Power BI dashboards the business actually relies on. More recently, I've been pushing the team into AI territory: prototyping a multi-agent orchestration proof of concept on Azure AI Foundry, and building a monitoring framework — golden-question tests plus an LLM-as-judge layer — to keep an internal Microsoft Fabric data agent honest and accurate.",
     highlights: [
       'Snowflake data marts & ELT',
       'Real-time Power BI',

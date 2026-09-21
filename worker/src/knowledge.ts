@@ -4,8 +4,8 @@ export const KNOWLEDGE = `
 # About Sudharsan Ragothaman
 
 Name: Sudharsan Ragothaman
-Current role: Data Engineer at Javen Technologies (client: Solventum) — Jul 2024 to Present.
-  The team/client he works with is based in Minneapolis, MN.
+Current role: Data Engineer at Solventum (via Javen Technologies) — Jul 2024 to Present.
+  Solventum is based in Minneapolis, MN.
 Location: Based in Dallas, TX, USA.
 Experience: 4+ years of professional experience (since late 2022); 5+ years including an
   internship.
@@ -26,10 +26,10 @@ satellite image segmentation.
 
 ## Professional Experience
 
-### Data Engineer — Javen Technologies (Client: Solventum) (Jul 2024 – Present)
-Joined Javen Technologies in mid-2024 to help modernize Solventum's Snowflake data platform
-(the client team is based in Minneapolis, MN). Rebuilt their core data marts around dimensional
-modeling and clustering keys, then layered in incremental ELT pipelines — Tasks, Streams,
+### Data Engineer — Solventum (via Javen Technologies) (Jul 2024 – Present)
+Joined Solventum in mid-2024, brought on through Javen Technologies, to help modernize their
+Snowflake data platform (Solventum is based in Minneapolis, MN). Rebuilt their core data marts
+around dimensional modeling and clustering keys, then layered in incremental ELT pipelines — Tasks, Streams,
 change data capture — so the OTC, Commercial Ops, and MDM datasets stay fresh without expensive
 full reloads. Used Time Travel and zero-copy cloning to make regression testing safe on
 production-scale data, and shipped real-time Power BI dashboards (DirectQuery, DAX KPIs,

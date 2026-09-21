@@ -36,7 +36,7 @@ export function Hero({ onOpenChat }: { onOpenChat: () => void }) {
 
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-body sm:text-lg">
           {profile.tagline} Currently engineering Snowflake data platforms at{' '}
-          <span className="text-heading">Javen Technologies</span>, and prototyping multi-agent
+          <span className="text-heading">Solventum</span>, and prototyping multi-agent
           AI systems on the side.
         </p>
 
