@@ -123,21 +123,29 @@ regardless.
 ### Email notification on new leads (`notify.py`)
 
 Whenever `/api/chat` captures a genuinely new lead (not a repeat of an email already on file),
-it emails a notification in a background thread — via `smtplib`, Python's standard library, no
-new dependency — so you find out immediately instead of having to remember to check
-`/admin/stats`.
+it emails a notification in a background thread so you find out immediately instead of having
+to remember to check `/admin/stats`.
 
-**One-time setup (free, using your own Gmail):**
-1. Enable 2-Step Verification on the sending Google account, if it isn't already
-   (myaccount.google.com/security).
-2. Generate an App Password at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-   — **not** your regular Gmail password, a separate 16-character one scoped to this use.
-3. Add `GMAIL_ADDRESS` (the sending account) and `GMAIL_APP_PASSWORD` (the 16-character password
-   from step 2) to Render's environment variables. `LEAD_NOTIFY_EMAIL` already defaults to
-   `sudharsan.nitt@gmail.com` in `render.yaml` — only add it yourself if you want notifications
-   to go somewhere else.
-4. Leave `GMAIL_ADDRESS`/`GMAIL_APP_PASSWORD` unset to disable this — leads still save to the
-   database and show up at `/admin/stats`, you just won't get an email about them.
+**Why Resend and not plain Gmail SMTP:** the first version of this used `smtplib` straight to
+Gmail — simplest possible approach, no new account, and it worked perfectly in local testing.
+It silently failed in production, though: **Render's free-tier web services block all outbound
+SMTP traffic (ports 25, 465, 587)**, specifically to prevent the platform being used for spam,
+as of September 2025. This isn't fixable in code — any direct-SMTP approach is a dead end on
+Render's free plan. Resend's API is plain HTTPS (port 443, same as any other web request), so
+it isn't affected.
+
+**One-time setup (free, via Resend):**
+1. Create a free account at [resend.com](https://resend.com) and generate an API key at
+   resend.com/api-keys (no credit card, no domain verification needed to get started — it sends
+   from Resend's own `onboarding@resend.dev` address by default, which works for any recipient).
+2. Add `RESEND_API_KEY` to Render's environment variables. `LEAD_NOTIFY_EMAIL` already defaults
+   to `sudharsan.nitt@gmail.com` in `render.yaml` — only add it yourself if you want
+   notifications to go somewhere else.
+3. Leave `RESEND_API_KEY` unset to disable this — leads still save to the database and show up
+   at `/admin/stats`, you just won't get an email about them.
+4. Optional: once you have a custom domain, verify it with Resend and set
+   `RESEND_FROM_ADDRESS=Suzie <suzie@yourdomain.com>` for a more personal "from" address instead
+   of the shared `onboarding@resend.dev`.
 
 ---
 
