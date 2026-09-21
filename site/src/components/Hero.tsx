@@ -60,7 +60,7 @@ export function Hero({ onOpenChat }: { onOpenChat: () => void }) {
         </div>
 
         <div className="mt-16 grid w-full max-w-3xl grid-cols-3 gap-4 border-t border-line pt-8">
-          <Stat value="2+ yrs" label="Data Engineering" />
+          <Stat value="4+ yrs" label="Experience" />
           <Stat value="Snowflake" label="SnowPro Certified" />
           <Stat value="LLM Agents" label="Built in production" />
         </div>

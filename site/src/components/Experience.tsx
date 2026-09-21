@@ -8,7 +8,7 @@ export function Experience() {
       <SectionHeading
         eyebrow="Experience"
         title="Where I've made an impact"
-        description="Two years of shipping production data platforms and AI systems for enterprise clients."
+        description="4+ years shipping production data platforms and AI systems for enterprise clients."
       />
 
       <div className="mt-14 space-y-10">
@@ -32,14 +32,17 @@ export function Experience() {
             <div className="card-glass rounded-2xl p-6 sm:p-8">
               <h3 className="font-display text-xl font-bold text-heading">{job.title}</h3>
               <p className="mt-1 text-sm font-medium text-brand-2">{job.company}</p>
-              <ul className="mt-5 space-y-3">
-                {job.bullets.map((b) => (
-                  <li key={b} className="flex gap-3 text-sm leading-relaxed text-body">
-                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-2/70" />
-                    {b}
-                  </li>
+              <p className="mt-5 text-sm leading-relaxed text-body">{job.story}</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {job.highlights.map((h) => (
+                  <span
+                    key={h}
+                    className="rounded-full border border-line bg-surface-2 px-3 py-1 text-xs text-body"
+                  >
+                    {h}
+                  </span>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         ))}
