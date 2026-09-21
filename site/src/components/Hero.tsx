@@ -50,7 +50,7 @@ export function Hero({ onOpenChat }: { onOpenChat: () => void }) {
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
           </button>
           <a
-            href="/resume.pdf"
+            href={`${import.meta.env.BASE_URL}resume.pdf`}
             download
             className="flex items-center gap-2 rounded-full border border-line px-6 py-3 text-sm font-semibold text-heading transition-colors hover:border-brand/50 hover:bg-surface"
           >

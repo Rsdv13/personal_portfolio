@@ -21,8 +21,10 @@ shows a "not connected yet" notice instead of erroring.
 ## Prerequisites
 
 - Node.js 22+ and npm
-- A GitHub account (repo: `https://github.com/Rsdv13/Rsdv13.github.io` — create it if it
-  doesn't exist yet; a repo named `<username>.github.io` is auto-served at the domain root)
+- A GitHub account (repo: `https://github.com/Rsdv13/personal_portfolio`). This is a project
+  repo (not named `<username>.github.io`), so GitHub Pages serves it at
+  `https://Rsdv13.github.io/personal_portfolio/` under a subpath — `site/vite.config.ts` already
+  sets `base: '/personal_portfolio/'` to match.
 - A free [Cloudflare](https://dash.cloudflare.com/sign-up) account (for the Worker)
 - An [OpenAI API key](https://platform.openai.com/api-keys)
 
@@ -83,17 +85,19 @@ Value: https://sudharsan-agent.<your-subdomain>.workers.dev
 ## 4. Push to GitHub and enable Pages
 
 ```bash
-git init
-git add .
-git commit -m "Initial personal branding site with AI agent"
-git branch -M main
-git remote add origin https://github.com/Rsdv13/Rsdv13.github.io.git
+git remote add origin https://github.com/Rsdv13/personal_portfolio.git
 git push -u origin main
 ```
 
 Then, in the GitHub repo: **Settings → Pages → Build and deployment → Source → GitHub Actions.**
 The included workflow (`.github/workflows/deploy.yml`) builds `site/` and deploys it
-automatically on every push to `main`. Your site will be live at `https://Rsdv13.github.io`.
+automatically on every push to `main`. Your site will be live at
+`https://Rsdv13.github.io/personal_portfolio/`.
+
+(If you'd rather have the site at the clean root domain `https://Rsdv13.github.io` with no
+subpath, rename the repo to `Rsdv13.github.io` in Settings → General, then change `base` back to
+`'/'` in `site/vite.config.ts` and drop the `/personal_portfolio/` prefixes in `index.html`'s
+Open Graph tags.)
 
 ### Optional: auto-deploy the Worker from CI too
 
