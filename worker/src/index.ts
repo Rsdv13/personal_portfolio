@@ -35,12 +35,12 @@ function json(data: unknown, status: number, origin: string) {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Allow either an explicit allowed origin, or "*" while the site owner is still testing.
+    // Origins are compared case-insensitively — browsers send hostnames lowercase
+    // (e.g. GitHub Pages serves from "rsdv13.github.io" regardless of the username's casing).
     const requestOrigin = request.headers.get('Origin') ?? ''
-    const allowOrigin =
-      env.ALLOWED_ORIGIN === '*' || requestOrigin === env.ALLOWED_ORIGIN
-        ? requestOrigin || env.ALLOWED_ORIGIN
-        : env.ALLOWED_ORIGIN
+    const isWildcard = env.ALLOWED_ORIGIN === '*'
+    const originMatches = isWildcard || requestOrigin.toLowerCase() === env.ALLOWED_ORIGIN.toLowerCase()
+    const allowOrigin = originMatches ? requestOrigin || env.ALLOWED_ORIGIN : env.ALLOWED_ORIGIN
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders(allowOrigin) })
@@ -50,7 +50,7 @@ export default {
       return json({ error: 'Method not allowed' }, 405, allowOrigin)
     }
 
-    if (env.ALLOWED_ORIGIN !== '*' && requestOrigin !== env.ALLOWED_ORIGIN) {
+    if (!originMatches) {
       return json({ error: 'Origin not allowed' }, 403, allowOrigin)
     }
 
