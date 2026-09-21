@@ -1,0 +1,64 @@
+{% from "partials/macros.html" import section_heading %}
+{% from "partials/icons.html" import map_pin, graduation_cap, award %}
+
+<section id="about" class="relative mx-auto max-w-6xl px-6 py-24">
+  {{ section_heading('About', 'The short version') }}
+
+  <div class="mt-12 grid gap-10 md:grid-cols-5">
+    <div class="card-glass section-fade relative rounded-3xl p-1 md:col-span-2">
+      <div class="flex aspect-square w-full items-center justify-center overflow-hidden rounded-[1.4rem] bg-gradient-to-br from-brand/20 via-surface to-brand-2/10">
+        <span class="font-display text-6xl font-bold text-heading/90">
+          {% for part in profile.name.split(' ') %}{{ part[0] }}{% endfor %}
+        </span>
+      </div>
+    </div>
+
+    <div class="section-fade md:col-span-3">
+      <p class="text-lg leading-relaxed text-body">{{ profile.summary }}</p>
+
+      <div class="mt-8 grid gap-4 sm:grid-cols-2">
+        <div class="flex items-start gap-3 rounded-xl border border-line bg-surface/60 p-4">
+          <span class="mt-0.5 text-brand-2">{{ map_pin('size-4') }}</span>
+          <div>
+            <p class="text-xs text-body">Based in</p>
+            <p class="text-sm font-medium text-heading">{{ profile.location }}</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-xl border border-line bg-surface/60 p-4">
+          <span class="mt-0.5 text-brand-2">{{ graduation_cap('size-4') }}</span>
+          <div>
+            <p class="text-xs text-body">Education</p>
+            <p class="text-sm font-medium text-heading">M.S. Engineering Data Science, University of Houston</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <p class="mb-3 flex items-center gap-2 text-sm font-semibold text-heading">
+          {{ award('size-4 text-brand-2') }}
+          Certifications & Achievements
+        </p>
+        <div class="flex flex-wrap gap-2">
+          {% for a in achievements %}
+          <span class="rounded-full border border-line bg-surface px-3 py-1.5 text-xs text-body">{{ a }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-16 grid gap-6 sm:grid-cols-2">
+    {% for ed in education %}
+    <div class="card-glass section-fade rounded-2xl p-6">
+      <p class="font-display font-semibold text-heading">{{ ed.degree }}</p>
+      <p class="mt-1 text-sm text-brand-2">{{ ed.school }}</p>
+      <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-body">
+        <span>{{ ed.period }}</span>
+        <span class="text-line">•</span>
+        <span>GPA {{ ed.gpa }}</span>
+      </div>
+      <p class="mt-3 text-sm text-body">{{ ed.detail }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>

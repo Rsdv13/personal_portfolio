@@ -1,0 +1,65 @@
+{% from "partials/icons.html" import bot, rotate_ccw, x_icon, send %}
+
+<!-- Floating action button -->
+<button
+  id="chat-fab"
+  data-chat-trigger
+  aria-label="Open AI chat"
+  class="fixed bottom-6 right-6 z-30 flex size-14 items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-2 text-ink shadow-xl shadow-brand/30 transition-transform hover:scale-110 sm:bottom-8 sm:right-8"
+>
+  <span class="animate-pulse-slow absolute inset-0 rounded-full bg-brand-2/40 blur-md"></span>
+  {{ bot('relative size-6') }}
+</button>
+
+<!-- Chat modal -->
+<div id="chat-modal" class="fixed inset-0 z-50 hidden items-end justify-center sm:items-center sm:p-6">
+  <button id="chat-backdrop" aria-label="Close chat" class="absolute inset-0 bg-ink/70 backdrop-blur-sm"></button>
+
+  <div class="relative flex h-[85vh] w-full max-w-lg flex-col rounded-t-3xl border border-line bg-surface shadow-2xl sm:h-[640px] sm:rounded-3xl">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-line px-5 py-4">
+      <div class="flex items-center gap-3">
+        <span class="flex size-9 items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-2 text-ink">
+          {{ bot('size-5') }}
+        </span>
+        <div>
+          <p class="font-display text-sm font-semibold text-heading">Suzie</p>
+          <p class="flex items-center gap-1.5 text-xs text-body">
+            <span class="size-1.5 rounded-full bg-emerald-400"></span>
+            <span id="chat-status">{{ 'Online' if chat_configured else 'Not connected' }}</span> · {{ profile.name }}'s Assistant
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="chat-reset" aria-label="Reset conversation" class="rounded-full p-2 text-body transition-colors hover:bg-surface-2 hover:text-heading">
+          {{ rotate_ccw('size-4') }}
+        </button>
+        <button id="chat-close" aria-label="Close chat" class="rounded-full p-2 text-body transition-colors hover:bg-surface-2 hover:text-heading">
+          {{ x_icon('size-4') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="chat-messages" class="flex-1 space-y-4 overflow-y-auto px-5 py-5"></div>
+
+    <!-- Input -->
+    <form id="chat-form" class="flex items-center gap-2 border-t border-line p-4">
+      <input
+        id="chat-input"
+        autocomplete="off"
+        {% if not chat_configured %}disabled{% endif %}
+        placeholder="{{ 'Ask Suzie anything…' if chat_configured else 'Suzie not connected yet' }}"
+        class="flex-1 rounded-full border border-line bg-surface-2 px-4 py-2.5 text-sm text-heading placeholder:text-body/60 outline-none focus:border-brand/50 disabled:cursor-not-allowed disabled:opacity-50"
+      />
+      <button
+        id="chat-send"
+        type="submit"
+        {% if not chat_configured %}disabled{% endif %}
+        class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-2 text-ink transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+      >
+        {{ send('size-4') }}
+      </button>
+    </form>
+  </div>
+</div>

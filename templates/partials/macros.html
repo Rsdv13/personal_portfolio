@@ -1,0 +1,7 @@
+{% macro section_heading(eyebrow, title, description=None) %}
+<div class="section-fade">
+  <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-2">{{ eyebrow }}</p>
+  <h2 class="font-display mt-3 text-3xl font-bold text-heading sm:text-4xl">{{ title }}</h2>
+  {% if description %}<p class="mt-3 max-w-2xl text-body">{{ description }}</p>{% endif %}
+</div>
+{% endmacro %}

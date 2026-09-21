@@ -1,36 +1,61 @@
 # Sudharsan Ragothaman — Personal Branding Site
 
-A personal branding website with an embedded AI agent that knows Sudharsan's full background
-(resume, projects, skills) and can answer visitor questions about him in real time.
+A personal branding website with an embedded AI agent (Suzie) that knows Sudharsan's full
+background (resume, projects, skills) and can answer visitor questions about him in real time.
 
-**Live site:** https://Rsdv13.github.io/personal_portfolio/
 **Repo:** https://github.com/Rsdv13/personal_portfolio
-**Chat API (Cloudflare Worker):** https://sudharsan-agent.sudharsantkd1999.workers.dev
+
+One Flask app serves both the pages and the chat API — no separate frontend/backend split, no
+CORS, one deployment target (Render).
 
 ## Architecture
 
 ```
-site/     React + TypeScript + Tailwind CSS v4 (Vite). Static build, deployed to GitHub Pages.
-worker/   Cloudflare Worker. Holds the OpenAI API key server-side and proxies chat requests
-          from the site. GitHub Pages can only serve static files, so this is the "backend."
+app.py                  Flask app: routes + the /api/chat streaming endpoint
+data/profile.py         Everything rendered on the page (experience, skills, education, contact)
+knowledge.py            What the AI agent (Suzie) knows + her system prompt/persona
+templates/               Jinja2 templates (base.html, index.html, partials/*.html)
+static/                  CSS (compiled Tailwind output), vanilla JS (nav + chat widget), favicon, resume.pdf
 ```
 
-The frontend never talks to OpenAI directly — it calls the Worker, which injects a system
-prompt containing Sudharsan's resume/experience (`worker/src/knowledge.ts`) and streams the
-model's reply back. The OpenAI key never reaches the browser.
+The browser only ever talks to this one Flask app. `/api/chat` holds the OpenAI key server-side
+(as an environment variable) and streams the model's reply back over SSE — the key never reaches
+the browser. If `OPENAI_API_KEY` isn't set, the site still runs fine; the chat widget just shows
+a "not connected yet" notice instead of erroring.
 
-If `VITE_CHAT_API_URL` isn't set at build time, the site still builds and deploys fine — the
-chat widget just shows a "not connected yet" notice instead of erroring.
+There's no build step for the frontend — templates and CSS are served as-is by Flask. The only
+"build" is `pip install -r requirements.txt`.
 
 ---
 
-## How to deploy changes (day-to-day)
+## Local development
 
-Both halves are already live. Redeploying is different for each:
+```bash
+python -m venv .venv
+.venv\Scripts\activate          # Windows. On macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env            # then edit .env and paste your OpenAI key
+python app.py
+```
 
-### Frontend changes (anything in `site/`)
+Opens at `http://localhost:5000`. Without `OPENAI_API_KEY` set, the site still runs — the chat
+widget shows a "not connected" state and everything else works normally.
 
-Just commit and push to `main` — **that's it.**
+## Deploying (Render)
+
+**First-time setup:**
+
+1. Push this repo to GitHub (already done — see above).
+2. Go to [Render](https://dashboard.render.com), **New → Web Service**, connect this GitHub repo.
+   Render will detect `render.yaml` and pre-fill the build/start commands
+   (`pip install -r requirements.txt` / `gunicorn app:app --workers 2 --threads 4 --timeout 120`).
+   Pick the **free** plan.
+3. Add the environment variable `OPENAI_API_KEY` in the Render dashboard (Environment tab) —
+   paste your key there directly; it's stored as a secret and never touches this repo.
+4. Deploy. Render gives you a URL like `https://sudharsan-portfolio.onrender.com`.
+
+**Day-to-day:** just `git push`. Render auto-deploys on every push to `main` once connected —
+no separate workflow to trigger, no separate frontend/backend deploy steps.
 
 ```bash
 git add -A
@@ -38,161 +63,55 @@ git commit -m "describe your change"
 git push
 ```
 
-`.github/workflows/deploy.yml` automatically rebuilds and republishes to GitHub Pages on every
-push to `main` that touches `site/**`. Check progress at
-https://github.com/Rsdv13/personal_portfolio/actions. Takes about a minute.
+Watch the deploy in the Render dashboard's **Logs** tab. Takes 1-2 minutes.
 
-If a push doesn't seem to trigger a run (e.g. you pushed an empty/no-op commit, or only touched
-files outside `site/**`), trigger it manually: **Actions → "Deploy site to GitHub Pages" → Run
-workflow → branch `main`.**
-
-### AI agent / Worker changes (anything in `worker/`)
-
-The Worker does **not** auto-deploy — redeploy it yourself after editing:
-
-```bash
-cd worker
-npm run deploy
-```
-
-That's a straight `wrangler deploy`; it reuses your existing `wrangler login` session and the
-`OPENAI_API_KEY` secret already stored in Cloudflare (secrets persist across deploys — you don't
-need to re-enter it). Takes a few seconds. Verify with:
-
-```bash
-curl -s -N -X POST "https://sudharsan-agent.sudharsantkd1999.workers.dev" \
-  -H "Origin: https://rsdv13.github.io" \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"hi"}]}'
-```
-You should see streamed `data: {...}` chunks back. (The `Origin` header matters — the Worker
-rejects requests from origins other than the live site; see Known gotchas below.)
-
-### Updating what the AI agent knows
-
-Content lives in two places that must be kept in sync by hand:
-- `site/src/data/profile.ts` — what's rendered on the page.
-- `worker/src/knowledge.ts` — what the AI agent knows (system prompt + facts).
-
-Edit both, then push (`site/`) and `npm run deploy` (`worker/`) as above.
-
-### If you ever need to re-authenticate
-
-- **GitHub push fails with an auth error:** `printf "protocol=https\nhost=github.com\n" | git credential reject` to clear the cached credential, then `git push` again — Git Credential Manager will re-prompt via browser.
-- **Wrangler session expired:** `cd worker && npx wrangler login`.
+**Free tier note:** Render's free web services sleep after 15 minutes of no traffic. The first
+visitor after a quiet period waits ~30-50s for the app to wake up (Suzie will just look "Not
+connected" or slow to respond during that window — it resolves itself once the instance is up).
+If that's not acceptable, upgrade to a paid instance type (no sleep) later — no code changes
+needed.
 
 ---
 
-## Known gotchas (things that already bit us once)
+## Updating what's on the site
 
-- **CORS is case-sensitive by default, but hostnames aren't.** GitHub Pages serves from a
-  lowercase host (`rsdv13.github.io`) regardless of how the GitHub username is capitalized. The
-  Worker compares `Origin` case-insensitively (`worker/src/index.ts`) specifically because of
-  this — if you ever rewrite that check, keep it case-insensitive or the chat widget will fail
-  with a CORS error that's easy to misdiagnose (it only shows up in the browser console, not as
-  an obvious page error).
-- **`wrangler secret put NAME`** — the secret's *name* is `NAME` (e.g. `OPENAI_API_KEY`); wrangler
-  then prompts `Enter a secret value:` on a **separate line** where you paste the actual key.
-  Passing the key itself as the argument (`wrangler secret put sk-proj-...`) stores it as a
-  secret literally *named* after the key — wrong, and it exposes the key in `wrangler secret
-  list` output. Always run `wrangler secret put OPENAI_API_KEY` with no value on the command
-  line, and paste only at the interactive prompt.
-- **This is a GitHub Pages *project* site, not a *user* site** — the repo is `personal_portfolio`,
-  not `Rsdv13.github.io`, so the site is served under `/personal_portfolio/` rather than the
-  domain root. `site/vite.config.ts` sets `base: '/personal_portfolio/'` to match, and any new
-  hardcoded absolute asset path (e.g. `href="/something.pdf"`) needs
-  `` `${import.meta.env.BASE_URL}something.pdf` `` instead, or it'll 404 in production while
-  working fine in local dev.
-- **A push with zero changed files won't trigger the Pages workflow** — it has a `paths:
-  ["site/**"]` filter, so an empty commit or a change outside `site/` is silently skipped. Use
-  the manual "Run workflow" button in that case.
+- `data/profile.py` — everything rendered on the page (experience, skills, education, contact
+  info). Plain Python dicts/lists; edit and redeploy.
+- `knowledge.py` — what Suzie knows and her persona/guardrails (`SYSTEM_PROMPT`). **Keep this in
+  sync with `data/profile.py` by hand** whenever the resume changes — nothing enforces it
+  automatically.
+- `static/resume.pdf` — the "Download résumé" button links here. Replace the file whenever your
+  résumé changes (same filename).
+- `static/favicon.svg` — browser tab icon (currently an "SR" monogram).
+- `static/og-image.png` (1200×630, not included) — optional social-preview image referenced in
+  `templates/base.html`'s Open Graph tags; add one for nicer link previews on LinkedIn/Slack.
+- A professional headshot: swap the initials avatar in `templates/partials/about.html` for an
+  `<img>` pointing at a photo you add under `static/`.
+- Visual/layout changes: edit `templates/partials/*.html` (Jinja2 + the same Tailwind utility
+  classes as before) and `static/css/style.css` directly. There's no CSS build step — if you add
+  a Tailwind utility class that isn't already used somewhere on the page, it won't have a
+  matching rule in `style.css` and won't do anything. Either write the equivalent plain CSS by
+  hand into `style.css`, or regenerate it with the standalone Tailwind CLI (no Node.js required):
+  https://tailwindcss.com/blog/standalone-cli
 
----
+## How the chat widget works (`static/js/chat.js`)
 
-## Initial setup (already done once — kept here for reference)
-
-<details>
-<summary>Expand if you ever need to set this up again from scratch (e.g. new machine, new Cloudflare account)</summary>
-
-### Prerequisites
-- Node.js 22+ and npm
-- A GitHub account and repo
-- A free [Cloudflare](https://dash.cloudflare.com/sign-up) account
-- An [OpenAI API key](https://platform.openai.com/api-keys)
-
-### 1. Local development
-```bash
-cd site
-npm install
-npm run dev
-```
-Opens at `http://localhost:5173`.
-
-### 2. Deploy the Worker
-```bash
-cd worker
-npm install
-npx wrangler login
-npx wrangler secret put OPENAI_API_KEY   # paste the key only when prompted — see gotchas above
-npm run deploy
-```
-First deploy may prompt you to register a `workers.dev` subdomain (one-time, via the dashboard
-link it prints) — this becomes part of your Worker's URL.
-
-`worker/wrangler.toml`'s `ALLOWED_ORIGIN` must match your GitHub Pages origin **exactly**
-(scheme + host, no path, lowercase — see gotchas above).
-
-**Rate limiting (optional, recommended if the link gets shared widely):** uncomment the
-`[[unsafe.bindings]]` block at the bottom of `worker/wrangler.toml`.
-
-### 3. Connect frontend to Worker
-Local dev: create `site/.env.local` (gitignored):
-```
-VITE_CHAT_API_URL=https://sudharsan-agent.<your-subdomain>.workers.dev
-```
-Production: add it as a GitHub Actions repo secret — **Settings → Secrets and variables →
-Actions → New repository secret** — `VITE_CHAT_API_URL`.
-
-### 4. Push and enable Pages
-```bash
-git remote add origin https://github.com/<you>/<repo>.git
-git push -u origin main
-```
-Then **Settings → Pages → Build and deployment → Source → GitHub Actions.**
-
-If the repo is a *project* site (not named `<username>.github.io`), set `base:
-'/<repo-name>/'` in `site/vite.config.ts` to match — see gotchas above.
-
-### Optional: auto-deploy the Worker from CI too
-`.github/workflows/deploy-worker.yml` can deploy the Worker on every push to `worker/**`
-instead of running `npm run deploy` by hand. It's disabled by default. To enable:
-1. Create a Cloudflare API token (My Profile → API Tokens → "Edit Cloudflare Workers" template).
-2. Add repo secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `OPENAI_API_KEY`.
-3. Add a repo **variable** (not secret) `CLOUDFLARE_DEPLOY_ENABLED` = `true`.
-
-</details>
-
----
-
-## Customizing content
-
-- `site/src/data/profile.ts` — everything rendered on the page (experience, skills, education).
-- `worker/src/knowledge.ts` — what the AI agent knows and its persona/guardrails. **Keep this in
-  sync with `profile.ts` manually** whenever the resume changes.
-- `site/public/resume.pdf` — the "Download résumé" button links here. Already included; replace
-  it whenever your résumé changes.
-- `site/public/favicon.svg` — browser tab icon (already set to an "SR" monogram).
-- `site/public/og-image.png` (1200×630) — optional social-preview image referenced in
-  `index.html`'s Open Graph tags; add one for nicer link previews on LinkedIn/Twitter/Slack.
-- A professional headshot: swap the initials avatar in `site/src/components/About.tsx`
-  (`InitialsAvatar`) for an `<img>` pointing at a photo you add under `site/public/`.
+Plain vanilla JS, no framework, no build step:
+- POSTs to `/api/chat` (same-origin, so no CORS config needed) with the conversation so far.
+- Reads the streamed SSE response chunk by chunk and appends each token to the in-progress
+  message bubble.
+- A small hand-rolled "markdown-lite" renderer handles **bold**, `[link](url)`, and `- ` bullet
+  lists in Suzie's replies — it escapes the text first, then applies a few regex substitutions,
+  so it's safe against the model ever echoing back HTML/script-like content.
 
 ## Security notes
 
-- The OpenAI key lives only as a Cloudflare Worker secret — never in frontend code or git.
-- The Worker enforces CORS to `ALLOWED_ORIGIN` (case-insensitively), validates message
-  shape/length/count, and its system prompt instructs the model to stay in persona and ignore
-  attempts (via user messages) to override its instructions or reveal the system prompt.
-- Consider Cloudflare's rate-limiting binding (see Initial setup above) before linking this
-  widely, since the chat endpoint is public and each message costs a small amount of OpenAI
-  credit.
+- The OpenAI key lives only as a Render environment variable — never in this repo.
+- `/api/chat` validates message shape/length/count (max 20 messages, 2000 chars each), and
+  Suzie's system prompt instructs her to stay in persona and ignore attempts (via user messages)
+  to override her instructions or reveal the system prompt.
+- Simple in-memory per-IP rate limiting (`app.py`, 20 requests/60s) guards against casual abuse.
+  It resets on restart and doesn't coordinate across multiple gunicorn worker processes, so it's
+  a soft limit, not a hard guarantee — fine for a personal site, not bulletproof. If this link
+  gets shared widely, consider a real rate limiter backed by Redis (Render has a Redis add-on) or
+  set spending limits on your OpenAI account as a backstop.

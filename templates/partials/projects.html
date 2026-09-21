@@ -1,0 +1,37 @@
+{% from "partials/macros.html" import section_heading %}
+{% from "partials/icons.html" import flask_conical, bot %}
+
+<section id="projects" class="relative mx-auto max-w-6xl px-6 py-24">
+  {{ section_heading('Projects & Research', "Things I've built", "Applied ML and computer vision research, plus this site's own AI agent.") }}
+
+  <div class="mt-12 grid gap-6 lg:grid-cols-3">
+    {% for proj in research %}
+    <div class="card-glass section-fade group flex flex-col rounded-2xl p-6 transition-transform hover:-translate-y-1">
+      <span class="flex size-10 items-center justify-center rounded-xl bg-brand-2/10 text-brand-2 ring-1 ring-brand-2/30">
+        {% if loop.index0 == 1 %}{{ bot('size-5') }}{% else %}{{ flask_conical('size-5') }}{% endif %}
+      </span>
+      <h3 class="font-display mt-4 text-lg font-bold text-heading">{{ proj.title }}</h3>
+      <ul class="mt-4 space-y-2.5">
+        {% for b in proj.bullets %}
+        <li class="text-sm leading-relaxed text-body">{{ b }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card-glass section-fade mt-8 flex flex-col items-start gap-4 rounded-2xl p-6 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-start gap-4">
+      <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand/15 text-brand-2 ring-1 ring-brand/30">
+        {{ bot('size-5') }}
+      </span>
+      <div>
+        <h3 class="font-display text-lg font-bold text-heading">This site's AI agent</h3>
+        <p class="mt-1 text-sm text-body">
+          A retrieval-grounded chat agent named Suzie (OpenAI, served through a Flask API) trained
+          on my resume and experience — ask her anything about my background.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

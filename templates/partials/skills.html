@@ -1,0 +1,18 @@
+{% from "partials/macros.html" import section_heading %}
+
+<section id="skills" class="relative mx-auto max-w-6xl px-6 py-24">
+  {{ section_heading('Skills', 'Tools I reach for', 'A stack spanning cloud data engineering, big data, and applied machine learning.') }}
+
+  <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {% for category, items in skills.items() %}
+    <div class="card-glass section-fade rounded-2xl p-6">
+      <p class="font-display text-sm font-semibold text-heading">{{ category }}</p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        {% for s in items %}
+        <span class="rounded-lg bg-surface-2 px-2.5 py-1 text-xs text-body ring-1 ring-inset ring-line transition-colors hover:text-heading hover:ring-brand/40">{{ s }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>

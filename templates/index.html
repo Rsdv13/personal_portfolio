@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-ink">
+  {% include "partials/nav.html" %}
+  <main>
+    {% include "partials/hero.html" %}
+    {% include "partials/about.html" %}
+    {% include "partials/experience.html" %}
+    {% include "partials/projects.html" %}
+    {% include "partials/skills.html" %}
+    {% include "partials/contact.html" %}
+  </main>
+  {% include "partials/footer.html" %}
+  {% include "partials/chat.html" %}
+</div>
+{% endblock %}

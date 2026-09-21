@@ -1,0 +1,47 @@
+{% from "partials/macros.html" import section_heading %}
+{% from "partials/icons.html" import mail, phone, message_circle, linkedin, github %}
+
+<section id="contact" class="relative mx-auto max-w-6xl px-6 py-24">
+  {{ section_heading('Contact', "Let's build something", 'Open to Data Engineering, Data Science, and AI Systems roles — or just a conversation about pipelines and agents.') }}
+
+  {% macro contact_card(icon, label, value, href, external=False) %}
+  <a
+    href="{{ href }}"
+    {% if external %}target="_blank"{% endif %}
+    rel="noreferrer"
+    class="card-glass section-fade group flex flex-col items-start gap-3 rounded-2xl p-5 transition-colors hover:border-brand/40"
+  >
+    <span class="flex size-10 items-center justify-center rounded-xl bg-surface-2 text-brand-2 ring-1 ring-line transition-colors group-hover:ring-brand/40">
+      {{ icon }}
+    </span>
+    <div>
+      <p class="text-xs text-body">{{ label }}</p>
+      <p class="truncate text-sm font-medium text-heading">{{ value }}</p>
+    </div>
+  </a>
+  {% endmacro %}
+
+  <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {{ contact_card(mail('size-5'), 'Email', profile.email, 'mailto:' ~ profile.email) }}
+    {{ contact_card(phone('size-5'), 'Phone', profile.phone, 'tel:' ~ profile.phone.replace('(', '').replace(')', '').replace('-', '')) }}
+    {{ contact_card(linkedin('size-5'), 'LinkedIn', 'in/sudharsan-ragothaman', profile.linkedin, external=True) }}
+    {{ contact_card(github('size-5'), 'GitHub', '@Rsdv13', profile.github, external=True) }}
+  </div>
+
+  <div class="card-glass section-fade mt-8 flex flex-col items-center gap-4 rounded-2xl p-8 text-center">
+    <span class="flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-2 text-ink">
+      {{ message_circle('size-6') }}
+    </span>
+    <p class="font-display text-lg font-semibold text-heading">Not sure where to start?</p>
+    <p class="max-w-md text-sm text-body">
+      Ask Suzie, my AI agent — she knows my whole background and can answer questions about my
+      experience, skills, and availability in real time.
+    </p>
+    <button
+      data-chat-trigger
+      class="rounded-full bg-gradient-to-r from-brand to-brand-2 px-6 py-2.5 text-sm font-semibold text-ink transition-transform hover:scale-105"
+    >
+      Start a conversation
+    </button>
+  </div>
+</section>

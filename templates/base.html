@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#05060a" />
+
+    <title>{{ profile.name }} — Data Engineer & AI Systems</title>
+    <meta
+      name="description"
+      content="{{ profile.name }} is a Data Engineer specializing in Snowflake, cloud data platforms, and LLM-powered agent systems. Chat with Suzie, his personal AI agent, to learn about his experience."
+    />
+    <meta name="author" content="{{ profile.name }}" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ request.url_root }}" />
+    <meta property="og:title" content="{{ profile.name }} — Data Engineer & AI Systems" />
+    <meta
+      property="og:description"
+      content="{{ profile.tagline }} Chat with Suzie, my personal AI agent, to learn about my experience."
+    />
+    <meta property="og:image" content="{{ request.url_root }}static/og-image.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ profile.name }} — Data Engineer & AI Systems" />
+    <meta name="twitter:description" content="{{ profile.tagline }}" />
+    <meta name="twitter:image" content="{{ request.url_root }}static/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body class="bg-ink">
+    {% block content %}{% endblock %}
+
+    <script>
+      window.CHAT_CONFIGURED = {{ chat_configured | tojson }};
+      window.ASSISTANT_NAME = {{ profile.name | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  </body>
+</html>

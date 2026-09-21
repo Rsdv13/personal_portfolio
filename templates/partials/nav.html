@@ -1,0 +1,58 @@
+{% from "partials/icons.html" import menu, x_icon, message_circle %}
+
+<header id="nav-header" class="fixed inset-x-0 top-0 z-40 transition-all bg-transparent">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a href="#top" class="font-display text-lg font-semibold text-heading">
+      Sudharsan<span class="text-gradient">.dev</span>
+    </a>
+
+    <div class="hidden items-center gap-8 md:flex">
+      <a href="#about" class="text-sm text-body transition-colors hover:text-heading">About</a>
+      <a href="#experience" class="text-sm text-body transition-colors hover:text-heading">Experience</a>
+      <a href="#projects" class="text-sm text-body transition-colors hover:text-heading">Projects</a>
+      <a href="#skills" class="text-sm text-body transition-colors hover:text-heading">Skills</a>
+      <a href="#contact" class="text-sm text-body transition-colors hover:text-heading">Contact</a>
+    </div>
+
+    <div class="hidden items-center gap-3 md:flex">
+      <button
+        data-chat-trigger
+        class="flex items-center gap-2 rounded-full bg-brand/10 px-4 py-2 text-sm font-medium text-brand-2 ring-1 ring-inset ring-brand/30 transition-all hover:bg-brand/20"
+      >
+        {{ message_circle('size-4') }}
+        Ask my AI
+      </button>
+      <a
+        href="{{ profile.linkedin }}"
+        target="_blank"
+        rel="noreferrer"
+        class="rounded-full bg-heading px-4 py-2 text-sm font-semibold text-ink transition-transform hover:scale-105"
+      >
+        LinkedIn
+      </a>
+    </div>
+
+    <button id="mobile-menu-btn" class="text-heading md:hidden" aria-label="Toggle menu">
+      <span id="mobile-menu-icon-open">{{ menu('size-6') }}</span>
+      <span id="mobile-menu-icon-close" class="hidden">{{ x_icon('size-6') }}</span>
+    </button>
+  </nav>
+
+  <div id="mobile-menu" class="hidden border-t border-line bg-surface px-6 py-4 md:hidden">
+    <div class="flex flex-col gap-4">
+      <a href="#about" class="text-sm text-body hover:text-heading" data-close-mobile-menu>About</a>
+      <a href="#experience" class="text-sm text-body hover:text-heading" data-close-mobile-menu>Experience</a>
+      <a href="#projects" class="text-sm text-body hover:text-heading" data-close-mobile-menu>Projects</a>
+      <a href="#skills" class="text-sm text-body hover:text-heading" data-close-mobile-menu>Skills</a>
+      <a href="#contact" class="text-sm text-body hover:text-heading" data-close-mobile-menu>Contact</a>
+      <button
+        data-chat-trigger
+        data-close-mobile-menu
+        class="flex w-fit items-center gap-2 rounded-full bg-brand/10 px-4 py-2 text-sm font-medium text-brand-2 ring-1 ring-inset ring-brand/30"
+      >
+        {{ message_circle('size-4') }}
+        Ask my AI
+      </button>
+    </div>
+  </div>
+</header>

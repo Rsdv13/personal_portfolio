@@ -2,17 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "site-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "site", "run", "dev"],
-      "port": 5173
-    },
-    {
-      "name": "site-preview",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "site", "run", "preview", "--", "--port", "4173"],
-      "port": 4173,
-      "url": "http://localhost:4173/personal_portfolio/"
+      "name": "flask-dev",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["app.py"],
+      "port": 5000
     }
   ]
 }
