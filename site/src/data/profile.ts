@@ -27,7 +27,7 @@ export const experience: ExperienceEntry[] = [
     location: 'Minneapolis, MN',
     period: 'Jul 2024 – Present',
     story:
-      "Sudharsan joined Javen Technologies in mid-2024 to help modernize Solventum's Snowflake data platform. He rebuilt their core data marts around dimensional modeling and clustering keys, then layered in incremental ELT pipelines — Tasks, Streams, change data capture — so the OTC, Commercial Ops, and MDM datasets stay fresh without expensive full reloads. He leaned on Time Travel and zero-copy cloning to make regression testing safe on production-scale data, and shipped real-time Power BI dashboards the business actually relies on. More recently, he's been pushing the team into AI territory: prototyping a multi-agent orchestration proof of concept on Azure AI Foundry, and building a monitoring framework — golden-question tests plus an LLM-as-judge layer — to keep an internal Microsoft Fabric data agent honest and accurate.",
+      "I joined Javen Technologies in mid-2024 to help modernize Solventum's Snowflake data platform. I rebuilt their core data marts around dimensional modeling and clustering keys, then layered in incremental ELT pipelines — Tasks, Streams, change data capture — so the OTC, Commercial Ops, and MDM datasets stay fresh without expensive full reloads. I leaned on Time Travel and zero-copy cloning to make regression testing safe on production-scale data, and shipped real-time Power BI dashboards the business actually relies on. More recently, I've been pushing the team into AI territory: prototyping a multi-agent orchestration proof of concept on Azure AI Foundry, and building a monitoring framework — golden-question tests plus an LLM-as-judge layer — to keep an internal Microsoft Fabric data agent honest and accurate.",
     highlights: [
       'Snowflake data marts & ELT',
       'Real-time Power BI',
@@ -41,7 +41,7 @@ export const experience: ExperienceEntry[] = [
     location: 'Georgia, USA',
     period: 'Feb 2023 – Jul 2024',
     story:
-      "Before that, as a Data Scientist at Trovadatum, Sudharsan spent his days in Python, SQL, and Spark — running EDA across operational databases and building Kafka-fed Spark pipelines on Databricks, orchestrated with Airflow. The project he's proudest of from that stretch is the \"Resume Bot,\" a LangChain-powered GenAI app that turned a static résumé into something people could actually talk to — the direct inspiration for the AI agent on this site. He also researched and built an LLM-based customer service bot, comparing Llama 2 and OpenAI models to find the right fit for the client.",
+      "Before that, as a Data Scientist at Trovadatum, I spent my days in Python, SQL, and Spark — running EDA across operational databases and building Kafka-fed Spark pipelines on Databricks, orchestrated with Airflow. The project I'm proudest of from that stretch is the \"Resume Bot,\" a LangChain-powered GenAI app that turned a static résumé into something people could actually talk to — the direct inspiration for the AI agent on this site. I also researched and built an LLM-based customer service bot, comparing Llama 2 and OpenAI models to find the right fit for the client.",
     highlights: [
       'LangChain "Resume Bot"',
       'LLM customer service bot',
