@@ -1,0 +1,17 @@
+name = "sudharsan-agent"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Non-secret config. OPENAI_API_KEY is set separately as a secret (see README):
+#   wrangler secret put OPENAI_API_KEY
+[vars]
+ALLOWED_ORIGIN = "https://Rsdv13.github.io"
+OPENAI_MODEL = "gpt-4o-mini"
+
+# Optional: uncomment to enable Cloudflare's native per-IP rate limiting (free tier
+# supported). The worker code already checks for this binding and no-ops if it's absent.
+# [[unsafe.bindings]]
+# name = "CHAT_RATE_LIMITER"
+# type = "ratelimit"
+# namespace_id = "1001"
+# simple = { limit = 20, period = 60 }
