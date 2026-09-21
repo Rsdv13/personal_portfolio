@@ -111,8 +111,8 @@ Otherwise, just redeploy manually with `npm run deploy` inside `worker/` wheneve
 - `site/src/data/profile.ts` — everything rendered on the page (experience, skills, education).
 - `worker/src/knowledge.ts` — what the AI agent knows and its persona/guardrails. **Keep this in
   sync with `profile.ts` manually** whenever the resume changes.
-- `site/public/resume.pdf` — the "Download résumé" button links here; add your résumé PDF at
-  this path (not included — export one from your resume doc and drop it in).
+- `site/public/resume.pdf` — the "Download résumé" button links here. Already included; replace
+  it whenever your résumé changes.
 - `site/public/favicon.svg` — browser tab icon (already set to an "SR" monogram).
 - `site/public/og-image.png` (1200×630) — optional social-preview image referenced in
   `index.html`'s Open Graph tags; add one for nicer link previews on LinkedIn/Twitter/Slack.
