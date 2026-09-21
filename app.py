@@ -1,13 +1,18 @@
+import hashlib
 import os
+import re
+import secrets
 import time
 from collections import defaultdict, deque
 from datetime import datetime, timezone
+from functools import wraps
 
 import requests
 from dotenv import load_dotenv
 from flask import Flask, Response, jsonify, render_template, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+import db
 from data.profile import achievements, education, experience, profile, research, skills
 from knowledge import SYSTEM_PROMPT
 
@@ -16,13 +21,22 @@ load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
+try:
+    db.init_db()
+except Exception as exc:  # DATABASE_URL set but unreachable/misconfigured — don't crash the site over it.
+    print(f"[db] init_db failed, traffic logging and lead capture are disabled: {exc}")
+
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+IP_HASH_SALT = os.environ.get("IP_HASH_SALT", "sudharsan-site")
 
 MAX_MESSAGES = 20
 MAX_MESSAGE_LENGTH = 2000
 RATE_LIMIT_MAX = 20
 RATE_LIMIT_WINDOW = 60  # seconds
+
+EMAIL_RE = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
 
 # Simple in-memory per-IP rate limit. Good enough for a single-instance personal site;
 # resets on restart and doesn't share state across multiple gunicorn workers/processes.
@@ -40,8 +54,47 @@ def check_rate_limit(ip: str) -> bool:
     return True
 
 
+def hash_ip(ip: str) -> str:
+    """One-way hash, not the raw IP — enough to tell 'same visitor' apart without storing
+    a reversible address. Salted so hashes aren't guessable via a plain rainbow table."""
+    return hashlib.sha256(f"{IP_HASH_SALT}:{ip}".encode()).hexdigest()[:16]
+
+
+def detect_device(user_agent: str | None) -> str:
+    ua = (user_agent or "").lower()
+    if any(b in ua for b in ("bot", "crawl", "spider", "slurp", "bingpreview", "facebookexternalhit")):
+        return "bot"
+    if "ipad" in ua or "tablet" in ua:
+        return "tablet"
+    if "mobile" in ua or "iphone" in ua or "android" in ua:
+        return "mobile"
+    return "desktop"
+
+
+def require_admin(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        auth = request.authorization
+        if not ADMIN_PASSWORD or not auth or not secrets.compare_digest(auth.password, ADMIN_PASSWORD):
+            return Response(
+                "Authentication required", 401, {"WWW-Authenticate": 'Basic realm="Admin"'}
+            )
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 @app.route("/")
 def index():
+    client_ip = (request.headers.get("X-Forwarded-For", request.remote_addr) or "").split(",")[0].strip()
+    user_agent = request.headers.get("User-Agent")
+    db.log_visit(
+        path="/",
+        referrer=request.referrer,
+        user_agent=user_agent,
+        ip_hash=hash_ip(client_ip) if client_ip else None,
+        device_type=detect_device(user_agent),
+    )
     return render_template(
         "index.html",
         profile=profile,
@@ -53,6 +106,12 @@ def index():
         chat_configured=bool(OPENAI_API_KEY),
         current_year=datetime.now(timezone.utc).year,
     )
+
+
+@app.route("/admin/stats")
+@require_admin
+def admin_stats():
+    return render_template("admin.html", stats=db.get_stats())
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -84,6 +143,17 @@ def chat():
         ):
             return jsonify({"error": "Malformed message in messages array"}), 400
         clean_messages.append({"role": m["role"], "content": m["content"]})
+
+    # Lead capture: if the visitor's latest message contains an email address, save it.
+    # Fires regardless of whether the OpenAI call below succeeds — the point is capturing
+    # what the visitor typed, not waiting on Suzie's reply.
+    last_user_message = next(
+        (m["content"] for m in reversed(clean_messages) if m["role"] == "user"), None
+    )
+    if last_user_message:
+        email_match = EMAIL_RE.search(last_user_message)
+        if email_match:
+            db.save_lead(email=email_match.group(0), message=last_user_message, referrer=request.referrer)
 
     try:
         upstream = requests.post(

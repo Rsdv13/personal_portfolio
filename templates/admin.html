@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Site Stats</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body class="bg-ink">
+    <div class="mx-auto max-w-5xl px-6 py-12">
+      <h1 class="font-display text-2xl font-bold text-heading">Site Stats</h1>
+      <p class="mt-1 text-sm text-body">Not linked from anywhere on the public site — bookmark this page.</p>
+
+      {% if stats is none %}
+      <div class="card-glass mt-8 rounded-2xl p-6">
+        <p class="text-sm text-body">
+          <span class="text-heading font-semibold">No database configured.</span>
+          Set <code class="rounded bg-surface-2 px-1.5 py-0.5">DATABASE_URL</code> to a Postgres
+          connection string (e.g. from Supabase) to enable traffic logging and lead capture.
+        </p>
+      </div>
+      {% else %}
+
+      <div class="mt-8 grid grid-cols-3 gap-4">
+        <div class="card-glass rounded-2xl p-5">
+          <p class="text-xs text-body">Total page views</p>
+          <p class="font-display mt-1 text-2xl font-bold text-heading">{{ stats.total_visits }}</p>
+        </div>
+        <div class="card-glass rounded-2xl p-5">
+          <p class="text-xs text-body">Unique visitors (approx.)</p>
+          <p class="font-display mt-1 text-2xl font-bold text-heading">{{ stats.unique_visitors }}</p>
+        </div>
+        <div class="card-glass rounded-2xl p-5">
+          <p class="text-xs text-body">Views today</p>
+          <p class="font-display mt-1 text-2xl font-bold text-heading">{{ stats.visits_today }}</p>
+        </div>
+      </div>
+
+      <h2 class="font-display mt-10 text-lg font-bold text-heading">
+        Leads ({{ stats.leads|length }})
+      </h2>
+      {% if not stats.leads %}
+      <p class="mt-2 text-sm text-body">No one has shared their email with Suzie yet.</p>
+      {% else %}
+      <div class="card-glass mt-4 overflow-hidden rounded-2xl">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-2 text-xs uppercase text-body">
+            <tr>
+              <th class="px-4 py-2.5">When</th>
+              <th class="px-4 py-2.5">Email</th>
+              <th class="px-4 py-2.5">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for lead in stats.leads %}
+            <tr class="border-t border-line align-top">
+              <td class="whitespace-nowrap px-4 py-2.5 text-body">{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td class="px-4 py-2.5 font-medium text-heading">{{ lead.email }}</td>
+              <td class="px-4 py-2.5 text-body">{{ lead.message }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      <h2 class="font-display mt-10 text-lg font-bold text-heading">Recent page views</h2>
+      <div class="card-glass mt-4 overflow-hidden rounded-2xl">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-2 text-xs uppercase text-body">
+            <tr>
+              <th class="px-4 py-2.5">When</th>
+              <th class="px-4 py-2.5">Device</th>
+              <th class="px-4 py-2.5">Referrer</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in stats.recent_visits %}
+            <tr class="border-t border-line">
+              <td class="whitespace-nowrap px-4 py-2.5 text-body">{{ v.visited_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td class="px-4 py-2.5 text-body">{{ v.device_type }}</td>
+              <td class="px-4 py-2.5 text-body">{{ v.referrer or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

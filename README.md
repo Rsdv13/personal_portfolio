@@ -12,9 +12,10 @@ CORS, one deployment target (Render).
 
 ```
 app.py                  Flask app: routes + the /api/chat streaming endpoint
+db.py                   Traffic logging + chat lead capture (Postgres, e.g. Supabase free tier)
 data/profile.py         Everything rendered on the page (experience, skills, education, contact)
 knowledge.py            What the AI agent (Suzie) knows + her system prompt/persona
-templates/               Jinja2 templates (base.html, index.html, partials/*.html)
+templates/               Jinja2 templates (base.html, index.html, partials/*.html, admin.html)
 static/                  CSS (compiled Tailwind output), vanilla JS (nav + chat widget), favicon, resume.pdf
 ```
 
@@ -73,6 +74,46 @@ needed.
 
 ---
 
+## Traffic monitoring & chat lead capture
+
+`db.py` logs page views and lets Suzie capture visitor contact info, backed by Postgres — both
+features are fully optional and no-op gracefully if unconfigured.
+
+**What it does:**
+- Every page load records a row in `page_visits` (path, referrer, a hashed IP — not the raw
+  address, user-agent, and a simple device-type guess). No third-party tracker, no cookies.
+- Suzie actively asks for a name + email when a conversation shows real interest (see her
+  updated ground rules in `knowledge.py`). Separately, `/api/chat` also scans the visitor's own
+  messages for anything that looks like an email address and saves it to a `leads` table — this
+  fires even if Suzie's reply itself fails, since the point is capturing what the visitor typed.
+  Each email is stored once (`ON CONFLICT (email) DO NOTHING`), keyed by the address itself.
+- A small disclosure line sits under the chat window: *"Conversations may be reviewed, and any
+  contact info you share may be used to follow up with you."* — worth keeping honest and visible
+  if you extend this further, since visitors are sharing personal data.
+- View it all at **`/admin/stats`** (not linked from the public site — bookmark it), protected by
+  HTTP Basic Auth against the `ADMIN_PASSWORD` env var. Without that variable set, the page
+  returns 401 for everyone, including you.
+
+**One-time setup (free, via Supabase):**
+1. Create a project at [supabase.com](https://supabase.com) (free tier, no credit card).
+2. Project Settings → Database → Connection string → **URI**, using the **Transaction pooler**
+   (port 6543) — copy it, it looks like
+   `postgresql://postgres.xxxx:password@aws-x-region.pooler.supabase.com:6543/postgres`.
+3. Add it to Render as the `DATABASE_URL` environment variable, plus set `ADMIN_PASSWORD` to
+   something real. `IP_HASH_SALT` auto-generates on first deploy via `render.yaml`
+   (`generateValue: true`) — you don't need to set it yourself.
+4. Redeploy (or just push any commit). `db.init_db()` runs on startup and creates the two tables
+   (`page_visits`, `leads`) automatically if they don't exist yet — no separate migration step.
+5. For local dev, add the same `DATABASE_URL` (and `ADMIN_PASSWORD`) to your `.env` file, or just
+   leave them unset — the site runs fine either way, traffic logging and lead capture just quietly
+   do nothing.
+
+**Limitation worth knowing:** the per-IP rate limiter in `app.py` is in-memory and doesn't touch
+this database — see Security notes below. Traffic/lead data itself is fully durable in Postgres
+regardless.
+
+---
+
 ## Updating what's on the site
 
 - `data/profile.py` — everything rendered on the page (experience, skills, education, contact
@@ -115,3 +156,11 @@ Plain vanilla JS, no framework, no build step:
   a soft limit, not a hard guarantee — fine for a personal site, not bulletproof. If this link
   gets shared widely, consider a real rate limiter backed by Redis (Render has a Redis add-on) or
   set spending limits on your OpenAI account as a backstop.
+- `db.py` stores visitor IPs only as a salted one-way hash, never the raw address, and only ever
+  stores an email address if the visitor typed it themselves in the chat. The `/admin/stats` page
+  holding that data is Basic-Auth protected and returns 401 if `ADMIN_PASSWORD` isn't set — treat
+  that password like any other credential (don't reuse one from elsewhere, don't commit it).
+  Collecting any personal data (even just an email) carries real privacy obligations depending on
+  who's visiting — this implementation is intentionally minimal (email + the message it appeared
+  in, nothing else, no cross-site tracking), but if traffic grows beyond casual/personal use,
+  revisit whether a proper privacy policy or consent flow is warranted for your situation.
